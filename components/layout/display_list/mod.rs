@@ -9,6 +9,7 @@ use app_units::{AU_PER_PX, Au};
 use clip::{Clip, ClipId};
 use euclid::{Box2D, Point2D, Rect, Scale, SideOffsets2D, Size2D, UnknownUnit, Vector2D};
 use fonts::ShapedText;
+use log::error;
 use gradient::WebRenderGradient;
 use layout_api::ReflowStatistics;
 use net_traits::image_cache::Image as CachedImage;
@@ -361,6 +362,15 @@ impl DisplayListBuilder<'_> {
         );
 
         let spatial_id = self.spatial_id(clip.parent_scroll_node_id);
+        let w = clip.rect.width();
+        let h = clip.rect.height();
+        if w > 100_000.0 || h > 100_000.0 {
+            let dpr = self.device_pixel_ratio.get();
+            error!(
+                "[canvas-debug] CLIP LARGE: rect={:?} (w={:.0}, h={:.0}) spatial_id={:?} dpr={}",
+                clip.rect, w, h, spatial_id, dpr,
+            );
+        }
         let new_clip_id = if clip.radii.is_zero() {
             self.wr().define_clip_rect(spatial_id, clip.rect)
         } else {
@@ -695,6 +705,16 @@ impl Fragment {
                         let common = builder.common_properties(clip, &style);
 
                         if let Some(image_key) = image.image_key {
+                            let dpr = builder.device_pixel_ratio.get();
+                            error!(
+                                "[canvas-debug] push_image image_key={:?} rect={:?} clip_rect={:?} clip_chain_id={:?} spatial_id={:?} dpr={}",
+                                image_key,
+                                rect,
+                                common.clip_rect,
+                                common.clip_chain_id,
+                                common.spatial_id,
+                                dpr,
+                            );
                             builder.wr().push_image(
                                 &common,
                                 rect,

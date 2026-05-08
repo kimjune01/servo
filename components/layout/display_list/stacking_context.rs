@@ -9,7 +9,7 @@ use std::sync::Arc;
 use app_units::Au;
 use embedder_traits::ViewportDetails;
 use euclid::{Point2D, Rect, SideOffsets2D, Size2D};
-use log::warn;
+use log::{error, warn};
 use malloc_size_of_derive::MallocSizeOf;
 use paint_api::display_list::{
     AxesScrollSensitivity, PaintDisplayListInfo, ReferenceFrameNodeInfo, ScrollableNodeInfo,
@@ -1542,11 +1542,19 @@ impl BoxFragment {
                 overflow_clip_rect.min.x = max.min.x;
                 overflow_clip_rect.max.x = max.max.x;
                 radii = BorderRadius::zero();
+                error!(
+                    "[canvas-debug] OVERFLOW MaxRect x-axis: overflow_clip_rect={:?} overflow={:?} {:?}",
+                    overflow_clip_rect, overflow.x, overflow.y,
+                );
             } else {
                 let max = LayoutRect::max_rect();
                 overflow_clip_rect.min.y = max.min.y;
                 overflow_clip_rect.max.y = max.max.y;
                 radii = BorderRadius::zero();
+                error!(
+                    "[canvas-debug] OVERFLOW MaxRect y-axis: overflow_clip_rect={:?} overflow={:?} {:?}",
+                    overflow_clip_rect, overflow.x, overflow.y,
+                );
             }
 
             let clip_id = stacking_context_tree.clip_store.add(

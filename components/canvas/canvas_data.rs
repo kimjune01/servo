@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 use euclid::default::{Point2D, Rect, Size2D, Transform2D};
+use log::error;
 use paint_api::CrossProcessPaintApi;
 use pixels::Snapshot;
 use servo_base::Epoch;
@@ -41,6 +42,12 @@ impl<DrawTarget: GenericDrawTarget> CanvasData<DrawTarget> {
 
     pub(crate) fn set_image_key(&mut self, image_key: ImageKey) {
         let (descriptor, data) = self.draw_target.image_descriptor_and_serializable_data();
+        error!(
+            "[canvas-debug] canvas_data::set_image_key image_key={:?} size={:?} format={:?}",
+            image_key,
+            descriptor.size,
+            descriptor.format,
+        );
         self.paint_api.add_image(image_key, descriptor, data, false);
 
         if let Some(old_image_key) = self.image_key.replace(image_key) {
@@ -321,6 +328,13 @@ impl<DrawTarget: GenericDrawTarget> CanvasData<DrawTarget> {
                 profile_traits::trace_span!("image_descriptor_and_serializable_data").entered();
             self.draw_target.image_descriptor_and_serializable_data()
         };
+
+        error!(
+            "[canvas-debug] canvas_data::update_image image_key={:?} size={:?} format={:?}",
+            image_key,
+            descriptor.size,
+            descriptor.format,
+        );
 
         self.paint_api
             .update_image(image_key, descriptor, data, canvas_epoch);
